@@ -1,0 +1,15 @@
+from math import *
+
+class Hero:
+    def __init__(self, window_width, window_height):
+        self.player_pos_x = window_width // 2
+        self.player_pos_y = window_height // 2
+        self.speed = 0.3
+        self.attack_radius = 30
+        self.blade_attack_damage = 10
+
+    def get_angle(self, mouse_pos_x, mouse_pos_y):
+            dx = mouse_pos_x - self.player_pos_x
+            dy = mouse_pos_y - self.player_pos_y
+            angle = degrees(atan2(dy, dx))
+            return angle if angle >= 0 else angle + 360

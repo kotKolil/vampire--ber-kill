@@ -2,18 +2,16 @@ from raylib import *
 from random import *
 from math import *
 from src.enemies import *
+from src.hero import *
 
 WIDTH = 666
 HEIGHT = 666
 PADDING = 30
+DEBUG = True
 ENEMIES = []
-player_pos_x = WIDTH // 2
-player_pos_y = HEIGHT // 2
-player_speed = 0.3
-ATTACK_RADIUS = 30
-BLADE_ATTACK_DAMAGE = 10
+hero = Hero(WIDTH, HEIGHT)
+
 MENU_ACTIVE = True
-FLOOR_DROWN = False
 
 def check_border(X, Y, V_WIDTH, V_HEIGHT):
     if X > PADDING and X < V_WIDTH - PADDING and Y > PADDING and Y < V_HEIGHT - PADDING:
@@ -29,11 +27,11 @@ def check_enemies():
 
 
 
-    global ENEMIES, player_pos_y, player_pos_x
+    global ENEMIES
 
     for i in ENEMIES:
-        if abs(ceil(( (i.pos_x  - player_pos_x ) ** 2 + (i.pos_y- player_pos_y ) ** 2 ) ** 0.5)) < ATTACK_RADIUS:
-            i.health-= BLADE_ATTACK_DAMAGE
+        if abs(ceil(( (i.pos_x + i.texture.width // 2  - hero.player_pos_x ) ** 2 + (i.pos_y + i.texture.height // 2 - hero.player_pos_y ) ** 2 ) ** 0.5)) < hero.attack_radius:
+            i.health-= hero.blade_attack_damage
             if i.health <= 0:
                 ENEMIES.remove(i)
                 return 0
@@ -41,7 +39,7 @@ def check_enemies():
 
 init_window(WIDTH, HEIGHT, "vampire uber-killer")
 floor_texture = load_texture_from_image(load_image("resources/floor6.png"))
-hero_texture  = load_texture_from_image(load_image("resources/hero.png"))
+hero_texture  = load_texture_from_image(load_image("resources/hero3.png"))
 main_font = load_font("resources/alagard.ttf")
 
 generate_random_enemy()
@@ -67,17 +65,17 @@ while not window_should_close():
 
         #key binds
         if is_key_down(KEY_RIGHT):
-            if check_border(player_pos_x + player_speed, player_pos_y, WIDTH, HEIGHT):
-                player_pos_x += player_speed
+            if check_border(hero.player_pos_x + hero.speed, hero.player_pos_y, WIDTH, HEIGHT):
+                hero.player_pos_x += hero.speed
         if is_key_down(KEY_LEFT):
-            if check_border(player_pos_x - player_speed, player_pos_y,  WIDTH, HEIGHT):
-                player_pos_x -= player_speed
+            if check_border(hero.player_pos_x - hero.speed, hero.player_pos_y,  WIDTH, HEIGHT):
+                hero.player_pos_x -= hero.speed
         if is_key_down(KEY_UP):
-            if check_border(player_pos_x, player_pos_y - player_speed, WIDTH, HEIGHT):
-                player_pos_y -= player_speed
+            if check_border(hero.player_pos_x, hero.player_pos_y - hero.speed, WIDTH, HEIGHT):
+                hero.player_pos_y -= hero.speed
         if is_key_down(KEY_DOWN):
-            if check_border(player_pos_x, player_pos_y + player_speed, WIDTH, HEIGHT):
-                player_pos_y += player_speed
+            if check_border(hero.player_pos_x, hero.player_pos_y + hero.speed, WIDTH, HEIGHT):
+                hero.player_pos_y += hero.speed
         if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
             check_enemies()
 
@@ -90,14 +88,16 @@ while not window_should_close():
 
         #rendering enemies
         for i in ENEMIES:
-            # pos_x = i["pos_x"]
-            # pos_y = i["pos_y"]
-            # draw_texture(i["texture"], pos_x, pos_y, WHITE)
             draw_texture(i.texture, i.pos_x, i.pos_y, WHITE)
 
-        draw_texture(hero_texture, floor(player_pos_x), floor(player_pos_y), WHITE)
-        draw_circle_lines(floor(player_pos_x), floor(player_pos_y), ATTACK_RADIUS, RED)
-        draw_fps(10,10)
+        draw_texture(hero_texture, floor(hero.player_pos_x), floor(hero.player_pos_y), WHITE)
+        draw_circle_lines(floor(hero.player_pos_x + hero_texture.width // 2 ), floor(hero.player_pos_y + hero_texture.height // 2), hero.attack_radius, RED)
+
+        if DEBUG:
+            draw_text_ex(main_font, f"fps: {get_fps()}", (10, 10), 15, 4, GREEN)
+            draw_text_ex(main_font, f"player x:{ceil(hero.player_pos_x)} y:{ceil(hero.player_pos_y)} angle:{ceil(hero.get_angle(get_mouse_x(), get_mouse_y()))}", (10, 40), 15, 4, GREEN)
+            draw_text_ex(main_font, f"mouse x:{ceil(get_mouse_x())} y:{ceil(get_mouse_y())}", (10, 70), 15, 4, GREEN)
+
 
     end_drawing()
 close_window()
