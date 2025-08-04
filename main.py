@@ -3,13 +3,13 @@ from random import *
 from math import *
 from src.enemies import *
 from src.hero import *
+from src.animation import *
 
 WIDTH = 666
 HEIGHT = 666
 PADDING = 30
 DEBUG = True
 ENEMIES = []
-hero = Hero(WIDTH, HEIGHT)
 
 MENU_ACTIVE = True
 
@@ -42,6 +42,12 @@ floor_texture = load_texture_from_image(load_image("resources/floor6.png"))
 hero_texture  = load_texture_from_image(load_image("resources/hero3.png"))
 main_font = load_font("resources/alagard.ttf")
 
+hero_idle_animation = Animation("resources/hero/idle", 3)
+hero_run_animation = Animation("resources/hero/right_run", 3)
+hero_left_animation = Animation("resources/hero/left_run", 3)
+attack_animation = Animation("resources/hero/attack", 3)
+hero = Hero(WIDTH, HEIGHT, hero_idle_animation, hero_run_animation, hero_left_animation, attack_animation)
+
 generate_random_enemy()
 while not window_should_close():
 
@@ -63,20 +69,26 @@ while not window_should_close():
 
     else:
 
+        hero.state = "idle"
         #key binds
         if is_key_down(KEY_RIGHT):
             if check_border(hero.player_pos_x + hero.speed, hero.player_pos_y, WIDTH, HEIGHT):
+                hero.state = "right_run"
                 hero.player_pos_x += hero.speed
         if is_key_down(KEY_LEFT):
             if check_border(hero.player_pos_x - hero.speed, hero.player_pos_y,  WIDTH, HEIGHT):
+                hero.state = "left_run"
                 hero.player_pos_x -= hero.speed
         if is_key_down(KEY_UP):
             if check_border(hero.player_pos_x, hero.player_pos_y - hero.speed, WIDTH, HEIGHT):
+                hero.state = "left_run"
                 hero.player_pos_y -= hero.speed
         if is_key_down(KEY_DOWN):
             if check_border(hero.player_pos_x, hero.player_pos_y + hero.speed, WIDTH, HEIGHT):
+                hero.state = "right_run"
                 hero.player_pos_y += hero.speed
         if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+            hero.state = "attack"
             check_enemies()
 
 
@@ -90,13 +102,32 @@ while not window_should_close():
         for i in ENEMIES:
             draw_texture(i.texture, i.pos_x, i.pos_y, WHITE)
 
-        draw_texture(hero_texture, floor(hero.player_pos_x), floor(hero.player_pos_y), WHITE)
-        draw_circle_lines(floor(hero.player_pos_x + hero_texture.width // 2 ), floor(hero.player_pos_y + hero_texture.height // 2), hero.attack_radius, RED)
+        match hero.state:
+            case "idle":
+                draw_texture(
+                    hero.idle_animation.current_frame(get_fps()),
+                    floor( hero.player_pos_x), floor(hero.player_pos_y),
+                    WHITE
+                )
+            case "right_run":
+                draw_texture(
+                    hero.right_run_animation.current_frame(get_fps()),
+                    floor( hero.player_pos_x), floor(hero.player_pos_y),
+                    WHITE
+                )
+            case "left_run":
+                draw_texture(
+                    hero.left_run_animation.current_frame(get_fps()),
+                    floor( hero.player_pos_x), floor(hero.player_pos_y),
+                    WHITE
+                )
+
 
         if DEBUG:
             draw_text_ex(main_font, f"fps: {get_fps()}", (10, 10), 15, 4, GREEN)
             draw_text_ex(main_font, f"player x:{ceil(hero.player_pos_x)} y:{ceil(hero.player_pos_y)} angle:{ceil(hero.get_angle(get_mouse_x(), get_mouse_y()))}", (10, 40), 15, 4, GREEN)
             draw_text_ex(main_font, f"mouse x:{ceil(get_mouse_x())} y:{ceil(get_mouse_y())}", (10, 70), 15, 4, GREEN)
+            draw_circle_lines(floor(hero.player_pos_x + hero_texture.width // 2 ), floor(hero.player_pos_y + hero_texture.height // 2), hero.attack_radius, RED)
 
 
     end_drawing()
