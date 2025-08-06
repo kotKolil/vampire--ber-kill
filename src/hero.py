@@ -7,6 +7,7 @@ class Hero:
         self.speed = 0.3
         self.attack_radius = 30
         self.blade_attack_damage = 10
+        self.health = 30
         self.state = "idle"
 
         self.idle_animation = idle_animation
