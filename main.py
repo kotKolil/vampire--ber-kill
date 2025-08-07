@@ -1,6 +1,5 @@
 from raylib import *
 from random import *
-from math import *
 from src.enemies import *
 from src.hero import *
 from src.animation import *
@@ -8,11 +7,13 @@ from src.animation import *
 WIDTH = 666
 HEIGHT = 666
 PADDING = 30
-DEBUG = False
+DEBUG = True
 ENEMIES = []
 IS_ATTACK = False
+HP_BAR_WIDTH = 200
 
 MENU_ACTIVE = True
+PAUSE = False
 
 def check_border(X, Y, V_WIDTH, V_HEIGHT):
     if X > PADDING and X < V_WIDTH - PADDING and Y > PADDING and Y < V_HEIGHT - PADDING:
@@ -35,10 +36,14 @@ def check_enemies_on_damage():
             i.health-= hero.blade_attack_damage
             if i.health <= 0:
                 ENEMIES.remove(i)
+                generate_random_enemy()
+                if not (hero.base_hp < hero.health + i.base_hp // 4):
+                    hero.health += i.base_hp // 4
                 return 0
             return 1
 
 init_window(WIDTH, HEIGHT, "vampire uber-killer")
+set_exit_key(KEY_Q)
 floor_texture = load_texture_from_image(load_image("resources/floor6.png"))
 hero_texture  = load_texture_from_image(load_image("resources/hero3.png"))
 main_font = load_font("resources/alagard.ttf")
@@ -50,13 +55,19 @@ attack_animation = Animation("resources/hero/attack", 9)
 hero = Hero(WIDTH, HEIGHT, hero_idle_animation, hero_run_animation, hero_left_animation, attack_animation)
 
 generate_random_enemy()
+
 while not window_should_close():
+
 
     begin_drawing()
     clear_background(BLACK)
 
+    if hero.health <= 0:
+        width, height =  measure_text_ex(main_font, "Game Over. Press q to quit", 20, 4).x, measure_text_ex(main_font, "Game Over. Press q to quit", 20, 4).y
+        draw_text_ex(main_font, "Game Over. Press q to quit", (WIDTH // 2 - width // 2, HEIGHT // 2 - height // 2), 20, 4,  GREEN)
+
     #rendering main menu
-    if MENU_ACTIVE:
+    elif MENU_ACTIVE:
 
 
         width, height =  measure_text_ex(main_font, "Vampire-uber-Killer", 20, 4).x, measure_text_ex(main_font, "Vampire-uber-Killer", 20, 4).y
@@ -67,7 +78,11 @@ while not window_should_close():
         if is_key_down(KEY_SPACE):
             MENU_ACTIVE = False
 
-
+    elif PAUSE:
+            width, height =  measure_text_ex(main_font, "pause", 20, 4).x, measure_text_ex(main_font, "pause", 20, 4).y
+            draw_text_ex(main_font, "pause", (WIDTH // 2 - width // 2, HEIGHT // 2 - height // 2), 20, 4,  GREEN)
+            if is_key_pressed(KEY_ESCAPE):
+                PAUSE = False
     else:
 
         hero.state = "idle"
@@ -88,7 +103,9 @@ while not window_should_close():
             if check_border(hero.player_pos_x, hero.player_pos_y + hero.speed, WIDTH, HEIGHT):
                 hero.state = "right_run"
                 hero.player_pos_y += hero.speed
-
+        if is_key_pressed(KEY_ESCAPE):
+                PAUSE = True
+        #hiting enemies
         if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
             IS_ATTACK = True
             check_enemies_on_damage()
@@ -101,14 +118,18 @@ while not window_should_close():
 
         #rendering enemies
         for i in ENEMIES:
-            draw_texture(i.texture, i.pos_x, i.pos_y, WHITE)
+            draw_texture(i.texture, floor(i.pos_x), floor(i.pos_y), WHITE)
 
         #running AI scripts
         for i in ENEMIES:
             i.ai_script(hero)
 
         #rendering health bar
-        draw_text_ex(main_font, f"HP {hero.health}", (WIDTH - 60 , 10), 15, 4, GREEN)
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 5, HP_BAR_WIDTH, 10, WHITE)
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 5, ceil(HP_BAR_WIDTH * (hero.health / hero.base_hp)), 10, RED)
+        #rendering mana bar
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 25, HP_BAR_WIDTH, 10, WHITE)
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 25, ceil(HP_BAR_WIDTH * (hero.mana / hero.base_mana)), 10, BLUE)
 
         #rendering debug info
         if DEBUG:
@@ -118,6 +139,7 @@ while not window_should_close():
             draw_circle_lines(floor(hero.player_pos_x + hero_texture.width // 2 ), floor(hero.player_pos_y + hero_texture.height // 2), hero.attack_radius, RED)
 
 
+        #rendering hero
         if IS_ATTACK:
             draw_texture(
                         hero.attack_animation.get_current_frame(get_fps()),

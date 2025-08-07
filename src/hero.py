@@ -7,13 +7,17 @@ class Hero:
         self.speed = 0.3
         self.attack_radius = 30
         self.blade_attack_damage = 10
+        self.base_hp = 30
+        self.base_mana = 60
         self.health = 30
+        self.mana = 48
         self.state = "idle"
 
         self.idle_animation = idle_animation
         self.right_run_animation = right_run_animation
         self.left_run_animation = left_run_animation
         self.attack_animation = attack_animation
+        self.texture = idle_animation.frames[0]
 
 
     def get_angle(self, mouse_pos_x, mouse_pos_y):
