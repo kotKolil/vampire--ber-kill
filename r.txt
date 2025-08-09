@@ -1,0 +1,6 @@
+cffi==1.17.1
+inflection==0.5.1
+pycparser==2.22
+pyray==0.1.0
+raylib==5.5.0.2
+raylib_dynamic==5.5.0.2
