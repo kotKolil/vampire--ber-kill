@@ -1,8 +1,7 @@
 from raylib import *
-from random import *
 from src.enemies import *
-from src.hero import *
 from src.animation import *
+from src.spell import *
 
 WIDTH = 666
 HEIGHT = 666
@@ -11,9 +10,11 @@ DEBUG = True
 ENEMIES = []
 IS_ATTACK = False
 HP_BAR_WIDTH = 200
+AI = True
 
 MENU_ACTIVE = True
 PAUSE = False
+SPELLS_MENU = False
 
 def check_border(X, Y, V_WIDTH, V_HEIGHT):
     if X > PADDING and X < V_WIDTH - PADDING and Y > PADDING and Y < V_HEIGHT - PADDING:
@@ -43,28 +44,47 @@ def check_enemies_on_damage():
             return 1
 
 init_window(WIDTH, HEIGHT, "vampire uber-killer")
+init_audio_device()
+set_window_state(FLAG_WINDOW_TOPMOST)
 set_exit_key(KEY_Q)
+set_target_fps(60)
 floor_texture = load_texture_from_image(load_image("resources/floor6.png"))
 hero_texture  = load_texture_from_image(load_image("resources/hero3.png"))
 main_font = load_font("resources/alagard.ttf")
+
+music = load_sound("resources/audio/Between Levels.ogg")
+sword_sound = load_sound("resources/audio/sword.ogg")
+c = load_sound("resources/death.ogg")
 
 hero_idle_animation = Animation("resources/hero/idle", 3)
 hero_run_animation = Animation("resources/hero/right_run", 3)
 hero_left_animation = Animation("resources/hero/left_run", 3)
 attack_animation = Animation("resources/hero/attack", 9)
-hero = Hero(WIDTH, HEIGHT, hero_idle_animation, hero_run_animation, hero_left_animation, attack_animation)
+death_animation = Animation('resources/hero/death', 9)
+hero = Hero(WIDTH, HEIGHT, hero_idle_animation, hero_run_animation, hero_left_animation, attack_animation,
+            death_animation)
 
+health_spell_class = Health_Spell()
+hero.spells_list.append(health_spell_class)
+play_sound(music)
 generate_random_enemy()
-
 while not window_should_close():
-
 
     begin_drawing()
     clear_background(BLACK)
 
     if hero.health <= 0:
-        width, height =  measure_text_ex(main_font, "Game Over. Press q to quit", 20, 4).x, measure_text_ex(main_font, "Game Over. Press q to quit", 20, 4).y
-        draw_text_ex(main_font, "Game Over. Press q to quit", (WIDTH // 2 - width // 2, HEIGHT // 2 - height // 2), 20, 4,  GREEN)
+
+        stop_sound(music)
+        if hero.death_animation.current_frame < 18:
+            draw_texture(hero.death_animation.get_current_frame(get_fps()),
+                floor( hero.player_pos_x), floor(hero.player_pos_y),
+                WHITE
+            )
+
+        else:
+            width, height =  measure_text_ex(main_font, "Game Over. Press q to quit", 20, 4).x, measure_text_ex(main_font, "Game Over. Press q to quit", 20, 4).y
+            draw_text_ex(main_font, "Game Over. Press q to quit", (WIDTH // 2 - width // 2, HEIGHT // 2 - height // 2), 20, 4,  GREEN)
 
     #rendering main menu
     elif MENU_ACTIVE:
@@ -77,6 +97,69 @@ while not window_should_close():
         draw_text_ex(main_font, "press space to start", (WIDTH // 2 - width1 // 2, HEIGHT // 2 + height // 2) ,10, 4, GREEN)
         if is_key_down(KEY_SPACE):
             MENU_ACTIVE = False
+
+
+    elif SPELLS_MENU:
+        #game on pause
+
+        #rendering floor
+        for x in range(0, WIDTH, floor_texture.width):
+            for y in range(0, HEIGHT, floor_texture.height):
+                draw_texture(floor_texture, x, y, WHITE)
+
+        #rendering enemies
+        for i in ENEMIES:
+            draw_texture(i.texture, floor(i.pos_x), floor(i.pos_y), WHITE)
+
+        #rendering health bar
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 5, HP_BAR_WIDTH, 10, WHITE)
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 5, ceil(HP_BAR_WIDTH * (hero.health / hero.base_hp)), 10, RED)
+        #rendering mana bar
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 25, HP_BAR_WIDTH, 10, WHITE)
+        draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 25, ceil(HP_BAR_WIDTH * (hero.mana / hero.base_mana)), 10, BLUE)
+
+        #rendering debug info
+        if DEBUG:
+            draw_text_ex(main_font, f"fps: {get_fps()}", (10, 10), 15, 4, GREEN)
+            draw_text_ex(main_font, f"player x:{ceil(hero.player_pos_x)} y:{ceil(hero.player_pos_y)} angle:{ceil(hero.get_angle(get_mouse_x(), get_mouse_y()))} IS_ATTACK {IS_ATTACK}", (10, 40), 15, 4, GREEN)
+            draw_text_ex(main_font, f"mouse x:{ceil(get_mouse_x())} y:{ceil(get_mouse_y())}", (10, 70), 15, 4, GREEN)
+            draw_circle_lines(floor(hero.player_pos_x + hero_texture.width // 2 ), floor(hero.player_pos_y + hero_texture.height // 2), hero.attack_radius, RED)
+
+
+        #rendering hero
+        if IS_ATTACK:
+
+            draw_texture(
+                        hero.attack_animation.get_current_frame(get_fps()),
+                        floor( hero.player_pos_x), floor(hero.player_pos_y),
+                        WHITE
+                    )
+            if hero.attack_animation.current_frame == 9:
+                hero.attack_animation.current_frame = 0
+                IS_ATTACK = False
+
+        else:
+            match hero.state:
+                case "idle":
+                    draw_texture(hero.idle_animation.get_current_frame(get_fps()),
+                        floor( hero.player_pos_x), floor(hero.player_pos_y),
+                        WHITE
+                    )
+                case "right_run":
+                    draw_texture(
+                        hero.right_run_animation.get_current_frame(get_fps()),
+                        floor( hero.player_pos_x), floor(hero.player_pos_y),
+                        WHITE
+                    )
+                case "left_run":
+                    draw_texture(
+                        hero.left_run_animation.get_current_frame(get_fps()),
+                        floor( hero.player_pos_x), floor(hero.player_pos_y),
+                        WHITE
+                    )
+
+        draw_rectangle(WIDTH // 2 - 150, HEIGHT // 2 - 50, 300, 100, BLACK)
+
 
     elif PAUSE:
             width, height =  measure_text_ex(main_font, "pause", 20, 4).x, measure_text_ex(main_font, "pause", 20, 4).y
@@ -105,8 +188,11 @@ while not window_should_close():
                 hero.player_pos_y += hero.speed
         if is_key_pressed(KEY_ESCAPE):
                 PAUSE = True
+        if is_key_pressed(KEY_TAB):
+                SPELLS_MENU = True
         #hiting enemies
         if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+            play_sound(sword_sound)
             IS_ATTACK = True
             check_enemies_on_damage()
 
@@ -121,8 +207,9 @@ while not window_should_close():
             draw_texture(i.texture, floor(i.pos_x), floor(i.pos_y), WHITE)
 
         #running AI scripts
-        for i in ENEMIES:
-            i.ai_script(hero)
+        if AI:
+            for i in ENEMIES:
+                i.ai_script(hero)
 
         #rendering health bar
         draw_rectangle(WIDTH - HP_BAR_WIDTH - 10, 0 + 5, HP_BAR_WIDTH, 10, WHITE)
@@ -146,6 +233,7 @@ while not window_should_close():
                         floor( hero.player_pos_x), floor(hero.player_pos_y),
                         WHITE
                     )
+
             if hero.attack_animation.current_frame == 9:
                 hero.attack_animation.current_frame = 0
                 IS_ATTACK = False
