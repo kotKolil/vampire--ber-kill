@@ -2,6 +2,7 @@ from raylib import *
 from src.enemies import *
 from src.animation import *
 from src.spell import *
+import importlib, inspect
 
 WIDTH = 666
 HEIGHT = 666
@@ -64,8 +65,9 @@ death_animation = Animation('resources/hero/death', 9)
 hero = Hero(WIDTH, HEIGHT, hero_idle_animation, hero_run_animation, hero_left_animation, attack_animation,
             death_animation)
 
-health_spell_class = HealthSpell("resources/spells_icons/health_spell_icon.png", hero, ENEMIES)
-hero.current_spell = health_spell_class
+
+spells = [ cls(hero, ENEMIES) for name, cls in inspect.getmembers(importlib.import_module("src.spell"), inspect.isclass) if cls.__module__ == 'src.spell' ][1:]
+hero.current_spell = spells[0]
 play_sound(music)
 generate_random_enemy()
 while not window_should_close():
@@ -124,6 +126,14 @@ while not window_should_close():
             draw_text_ex(main_font, f"player x:{ceil(hero.player_pos_x)} y:{ceil(hero.player_pos_y)} angle:{ceil(hero.get_angle(get_mouse_x(), get_mouse_y()))} IS_ATTACK {IS_ATTACK}", (10, 40), 15, 4, GREEN)
             draw_text_ex(main_font, f"mouse x:{ceil(get_mouse_x())} y:{ceil(get_mouse_y())}", (10, 70), 15, 4, GREEN)
             draw_circle_lines(floor(hero.player_pos_x + hero_texture.width // 2 ), floor(hero.player_pos_y + hero_texture.height // 2), hero.attack_radius, RED)
+
+        if is_key_down(KEY_ESCAPE):
+            SPELLS_MENU = False
+        #changing spell to next
+        if is_key_down(KEY_UP):
+            pass
+        if is_key_down(KEY_DOWN):
+            pass
 
 
         #rendering hero

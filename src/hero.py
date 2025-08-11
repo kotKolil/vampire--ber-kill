@@ -10,7 +10,7 @@ class Hero:
         self.blade_attack_damage = 13
         self.base_hp = 30
         self.base_mana = 60
-        self.health = 29
+        self.health = 16
         self.mana = 60
         self.state = "idle"
         self.current_spell = None
