@@ -169,19 +169,13 @@ while not window_should_close():
                     )
 
         #rendering spell menu
-        draw_rectangle(WIDTH // 2 - 200, HEIGHT // 2 - 50, 400, 100, BLACK)
-        draw_texture(hero.current_spell.icon, WIDTH // 2 - hero.current_spell.icon.width - 110, HEIGHT // 2 - \
-                     hero.current_spell.icon.height // 2, WHITE)
-        width, height =  (measure_text_ex(main_font, hero.current_spell.name, 20, 4).x,
-                          measure_text_ex(main_font, hero.current_spell.name, 20, 4).y)
-        draw_text_ex(main_font, hero.current_spell.name, (WIDTH // 2 - width//2 + 30,
-                    HEIGHT // 2 - height // 2 - 30),20, 4, GREEN)
-        width, height =  (measure_text_ex(main_font, hero.current_spell.description, 12, 4).x,
-                  measure_text_ex(main_font, hero.current_spell.description, 12, 4).y)
-        draw_text_ex(main_font, hero.current_spell.description, (WIDTH // 2 - width//2 + 20,
-                    HEIGHT // 2 - height // 2),12, 4, GREEN)
-
-
+        draw_rectangle(0, HEIGHT - 100, WIDTH, 300, BLACK)
+        draw_texture(hero.current_spell.icon, 30, HEIGHT - hero.current_spell.icon.height - 30, WHITE)
+        draw_texture(hero.current_spell.icon, 30, HEIGHT - hero.current_spell.icon.height - 30, WHITE)
+        width, height =  measure_text_ex(main_font, hero.current_spell.name, 20, 4).x, measure_text_ex(main_font, spells[0].name, 20, 4).y
+        draw_text_ex(main_font, hero.current_spell.name, (WIDTH // 2 - width // 2, HEIGHT  - 100), 20, 4,  GREEN)
+        width, height =  measure_text_ex(main_font, hero.current_spell.description, 14, 4).x, measure_text_ex(main_font, hero.current_spell.description, 14, 4).y
+        draw_text_ex(main_font, hero.current_spell.description, (hero.current_spell.icon.width + 50, HEIGHT  - 50), 14, 4,  GREEN)
 
 
     elif PAUSE:

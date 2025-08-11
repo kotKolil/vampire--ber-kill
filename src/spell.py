@@ -51,7 +51,7 @@ class HealthSpell(AbcSpell):
         pass
 
 class ShieldSpell(AbcSpell):
-    def __int__(self, hero, enemies_list):
+    def __init__(self, hero, enemies_list):
         super().__init__(hero, enemies_list)
         self.mana_count = 20
         self.description = "creates magic shield against damage"
