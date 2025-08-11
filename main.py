@@ -10,7 +10,7 @@ DEBUG = True
 ENEMIES = []
 IS_ATTACK = False
 HP_BAR_WIDTH = 200
-AI = True
+AI = False
 
 MENU_ACTIVE = True
 PAUSE = False
@@ -64,8 +64,8 @@ death_animation = Animation('resources/hero/death', 9)
 hero = Hero(WIDTH, HEIGHT, hero_idle_animation, hero_run_animation, hero_left_animation, attack_animation,
             death_animation)
 
-health_spell_class = Health_Spell()
-hero.spells_list.append(health_spell_class)
+health_spell_class = HealthSpell("resources/spells_icons/health_spell_icon.png", hero, ENEMIES)
+hero.current_spell = health_spell_class
 play_sound(music)
 generate_random_enemy()
 while not window_should_close():
@@ -158,7 +158,20 @@ while not window_should_close():
                         WHITE
                     )
 
-        draw_rectangle(WIDTH // 2 - 150, HEIGHT // 2 - 50, 300, 100, BLACK)
+        #rendering spell menu
+        draw_rectangle(WIDTH // 2 - 200, HEIGHT // 2 - 50, 400, 100, BLACK)
+        draw_texture(hero.current_spell.icon, WIDTH // 2 - hero.current_spell.icon.width - 110, HEIGHT // 2 - \
+                     hero.current_spell.icon.height // 2, WHITE)
+        width, height =  (measure_text_ex(main_font, hero.current_spell.name, 20, 4).x,
+                          measure_text_ex(main_font, hero.current_spell.name, 20, 4).y)
+        draw_text_ex(main_font, hero.current_spell.name, (WIDTH // 2 - width//2 + 30,
+                    HEIGHT // 2 - height // 2 - 30),20, 4, GREEN)
+        width, height =  (measure_text_ex(main_font, hero.current_spell.description, 12, 4).x,
+                  measure_text_ex(main_font, hero.current_spell.description, 12, 4).y)
+        draw_text_ex(main_font, hero.current_spell.description, (WIDTH // 2 - width//2 + 20,
+                    HEIGHT // 2 - height // 2),12, 4, GREEN)
+
+
 
 
     elif PAUSE:
@@ -190,6 +203,8 @@ while not window_should_close():
                 PAUSE = True
         if is_key_pressed(KEY_TAB):
                 SPELLS_MENU = True
+        if is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+            hero.current_spell.script()
         #hiting enemies
         if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
             play_sound(sword_sound)
