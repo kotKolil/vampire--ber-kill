@@ -11,7 +11,7 @@ DEBUG = True
 ENEMIES = []
 IS_ATTACK = False
 HP_BAR_WIDTH = 200
-AI = False
+AI = True
 
 MENU_ACTIVE = True
 PAUSE = False
@@ -21,6 +21,12 @@ def check_border(X, Y, V_WIDTH, V_HEIGHT):
     if X > PADDING and X < V_WIDTH - PADDING and Y > PADDING and Y < V_HEIGHT - PADDING:
         return True
     return False
+
+def get_element_index(arr, element):
+    for i in range(len(arr)):
+        if arr[i] == element:
+            return i
+    return None
 
 def generate_random_enemy():
     c = RobotEnemy( randint(0 + PADDING, WIDTH - PADDING), randint(0 + PADDING, WIDTH - PADDING) )
@@ -175,8 +181,16 @@ while not window_should_close():
         width, height =  measure_text_ex(main_font, hero.current_spell.name, 20, 4).x, measure_text_ex(main_font, spells[0].name, 20, 4).y
         draw_text_ex(main_font, hero.current_spell.name, (WIDTH // 2 - width // 2, HEIGHT  - 100), 20, 4,  GREEN)
         width, height =  measure_text_ex(main_font, hero.current_spell.description, 14, 4).x, measure_text_ex(main_font, hero.current_spell.description, 14, 4).y
-        draw_text_ex(main_font, hero.current_spell.description, (hero.current_spell.icon.width + 50, HEIGHT  - 50), 14, 4,  GREEN)
+        draw_text_ex(main_font, hero.current_spell.description, (hero.current_spell.icon.width + 50, HEIGHT  - 50 - height), 14, 4,  GREEN)
 
+        if is_key_pressed(KEY_ESCAPE):
+            SPELLS_MENU = False
+        if is_key_pressed(KEY_RIGHT):
+            if get_element_index(spells, hero.current_spell) < len(spells) - 1:
+                hero.current_spell = spells[1 + get_element_index(spells, hero.current_spell)]
+        if is_key_pressed(KEY_LEFT):
+            if get_element_index(spells, hero.current_spell) > 0:
+                hero.current_spell = spells[get_element_index(spells, hero.current_spell) - 1]
 
     elif PAUSE:
             width, height =  measure_text_ex(main_font, "pause", 20, 4).x, measure_text_ex(main_font, "pause", 20, 4).y
@@ -209,6 +223,7 @@ while not window_should_close():
                 SPELLS_MENU = True
         if is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
             hero.current_spell.script()
+            hero.current_spell.long_script_start = time()
         #hiting enemies
         if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
             play_sound(sword_sound)
@@ -242,6 +257,7 @@ while not window_should_close():
             draw_text_ex(main_font, f"fps: {get_fps()}", (10, 10), 15, 4, GREEN)
             draw_text_ex(main_font, f"player x:{ceil(hero.player_pos_x)} y:{ceil(hero.player_pos_y)} angle:{ceil(hero.get_angle(get_mouse_x(), get_mouse_y()))} IS_ATTACK {IS_ATTACK}", (10, 40), 15, 4, GREEN)
             draw_text_ex(main_font, f"mouse x:{ceil(get_mouse_x())} y:{ceil(get_mouse_y())}", (10, 70), 15, 4, GREEN)
+            draw_text_ex(main_font, f"spell {hero.current_spell}", (10, 100), 15, 4, GREEN)
             draw_circle_lines(floor(hero.player_pos_x + hero_texture.width // 2 ), floor(hero.player_pos_y + hero_texture.height // 2), hero.attack_radius, RED)
 
 
@@ -276,6 +292,13 @@ while not window_should_close():
                         floor( hero.player_pos_x), floor(hero.player_pos_y),
                         WHITE
                     )
+
+        if hero.current_spell.long_script_start + hero.current_spell.long_script_time > time()  and \
+                hero.current_spell.long_script_start != 0:
+                    hero.current_spell.long_script()
+                    print("spell is running")
+        else:
+            hero.current_spell.long_script_start = 0
 
     end_drawing()
 close_window()

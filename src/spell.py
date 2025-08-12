@@ -13,6 +13,7 @@ class AbcSpell:
         self.hero = hero
         self.enemies = enemies_list
         self.animation = None
+        self.long_script_start = 0
         self.long_script_time = 0
 
     def __str__(self):
@@ -56,6 +57,9 @@ class ShieldSpell(AbcSpell):
         self.mana_count = 20
         self.description = "creates magic shield against damage"
         self.icon = load_texture_from_image(load_image("resources/spells_icons/shield_spell_icon.png"))
-        self.cooldown = 7
+        self.cooldown = 6
         self.name = "shield spell"
-        self.long_script_time = 7
+        self.long_script_time = 1
+
+    def long_script(self):
+        self.hero.health = self.hero.health + (self.hero.base_hp - self.hero.health)
