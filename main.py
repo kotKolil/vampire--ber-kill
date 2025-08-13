@@ -3,15 +3,25 @@ from src.enemies import *
 from src.animation import *
 from src.spell import *
 import importlib, inspect
+import audioread
 
 WIDTH = 666
 HEIGHT = 666
 PADDING = 30
-DEBUG = True
+DEBUG = False
 ENEMIES = []
 IS_ATTACK = False
 HP_BAR_WIDTH = 200
 AI = True
+MUSIC_START = time()
+MAIN_MUSIC_THEME = "resources/audio/Between Levels.ogg"
+CURRENT_MUSIC_PATH = MAIN_MUSIC_THEME
+CURRENT_MUSIC_INFO = audioread.audio_open(CURRENT_MUSIC_PATH)
+
+DEATH_MUSIC = "resources/audio/death.ogg"
+DEATH_MUSIC_INFO = audioread.audio_open(DEATH_MUSIC)
+
+SWITCH_SOUND = load_sound("resources/audio/switch.ogg")
 
 MENU_ACTIVE = True
 PAUSE = False
@@ -59,7 +69,8 @@ floor_texture = load_texture_from_image(load_image("resources/floor6.png"))
 hero_texture  = load_texture_from_image(load_image("resources/hero3.png"))
 main_font = load_font("resources/alagard.ttf")
 
-music = load_sound("resources/audio/Between Levels.ogg")
+CURRENT_MUSIC = load_sound(CURRENT_MUSIC_PATH)
+CURRENT_MUSIC_INFO = CURRENT_MUSIC_INFO
 sword_sound = load_sound("resources/audio/sword.ogg")
 c = load_sound("resources/death.ogg")
 
@@ -74,16 +85,27 @@ hero = Hero(WIDTH, HEIGHT, hero_idle_animation, hero_run_animation, hero_left_an
 
 spells = [ cls(hero, ENEMIES) for name, cls in inspect.getmembers(importlib.import_module("src.spell"), inspect.isclass) if cls.__module__ == 'src.spell' ][1:]
 hero.current_spell = spells[0]
-play_sound(music)
+play_sound(CURRENT_MUSIC)
 generate_random_enemy()
 while not window_should_close():
+
+    if time() - MUSIC_START > CURRENT_MUSIC_INFO.duration:
+        MUSIC_START = time()
+        play_sound(CURRENT_MUSIC)
+
+
 
     begin_drawing()
     clear_background(BLACK)
 
     if hero.health <= 0:
-
-        stop_sound(music)
+        if CURRENT_MUSIC_PATH != DEATH_MUSIC:
+            CURRENT_MUSIC_PATH = DEATH_MUSIC
+            stop_sound(CURRENT_MUSIC)
+            CURRENT_MUSIC = load_sound(DEATH_MUSIC)
+            CURRENT_MUSIC_INFO = DEATH_MUSIC_INFO
+            MUSIC_START = time()
+            play_sound(CURRENT_MUSIC)
         if hero.death_animation.current_frame < 18:
             draw_texture(hero.death_animation.get_current_frame(get_fps()),
                 floor( hero.player_pos_x), floor(hero.player_pos_y),
@@ -135,11 +157,6 @@ while not window_should_close():
 
         if is_key_down(KEY_ESCAPE):
             SPELLS_MENU = False
-        #changing spell to next
-        if is_key_down(KEY_UP):
-            pass
-        if is_key_down(KEY_DOWN):
-            pass
 
 
         #rendering hero
@@ -186,9 +203,11 @@ while not window_should_close():
         if is_key_pressed(KEY_ESCAPE):
             SPELLS_MENU = False
         if is_key_pressed(KEY_RIGHT):
+            play_sound(SWITCH_SOUND)
             if get_element_index(spells, hero.current_spell) < len(spells) - 1:
                 hero.current_spell = spells[1 + get_element_index(spells, hero.current_spell)]
         if is_key_pressed(KEY_LEFT):
+            play_sound(SWITCH_SOUND)
             if get_element_index(spells, hero.current_spell) > 0:
                 hero.current_spell = spells[get_element_index(spells, hero.current_spell) - 1]
 
@@ -222,8 +241,10 @@ while not window_should_close():
         if is_key_pressed(KEY_TAB):
                 SPELLS_MENU = True
         if is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-            hero.current_spell.script()
-            hero.current_spell.long_script_start = time()
+            if hero.mana - hero.current_spell.mana_count >= 0:
+                hero.mana -= hero.current_spell.mana_count
+                hero.current_spell.script()
+                hero.current_spell.long_script_start = time()
         #hiting enemies
         if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
             play_sound(sword_sound)
@@ -296,7 +317,7 @@ while not window_should_close():
         if hero.current_spell.long_script_start + hero.current_spell.long_script_time > time()  and \
                 hero.current_spell.long_script_start != 0:
                     hero.current_spell.long_script()
-                    print("spell is running")
+                    hero.current_spell.spell_animation(get_fps())
         else:
             hero.current_spell.long_script_start = 0
 

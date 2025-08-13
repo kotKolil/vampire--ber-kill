@@ -1,4 +1,6 @@
 from .hero import *
+from .animation import *
+
 from pyray import *
 
 class AbcSpell:
@@ -15,6 +17,7 @@ class AbcSpell:
         self.animation = None
         self.long_script_start = 0
         self.long_script_time = 0
+        self.animation = None
 
     def __str__(self):
         return self.description
@@ -41,14 +44,12 @@ class HealthSpell(AbcSpell):
 
 
     def script(self):
-        if self.hero.mana - self.mana_count >= 0 and self.hero.health != self.hero.base_hp:
+        if self.hero.health != self.hero.base_hp:
             if self.hero.health + 10 <= self.hero.base_hp:
                 self.hero.health += 10
-                self.hero.mana -= self.mana_count
             else:
                 self.hero.health += self.hero.base_hp - self.hero.health
-                self.hero.mana -= self.mana_count
-    def play_animation(self):
+    def play_animation(self, fps):
         pass
 
 class ShieldSpell(AbcSpell):
@@ -59,7 +60,15 @@ class ShieldSpell(AbcSpell):
         self.icon = load_texture_from_image(load_image("resources/spells_icons/shield_spell_icon.png"))
         self.cooldown = 6
         self.name = "shield spell"
-        self.long_script_time = 1
+        self.long_script_time = 7
+        self.animation = Animation("resources/spell_effects/shield_spell", 1)
 
     def long_script(self):
-        self.hero.health = self.hero.health + (self.hero.base_hp - self.hero.health)
+        self.hero.health = self.hero.health +  self.hero.health + (self.hero.base_hp - self.hero.health) if \
+            self.hero.health < self.hero.base_hp else self.hero.health
+
+    def spell_animation(self, fps):
+        draw_texture(self.animation.get_current_frame(fps),
+                     floor(self.hero.player_pos_x),
+                     floor(self.hero.player_pos_y),
+                     WHITE)
