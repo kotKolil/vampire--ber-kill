@@ -1,8 +1,8 @@
 from math import *
+from .animation import *
 
 class Hero:
-    def __init__(self, window_width, window_height, idle_animation, right_run_animation, left_run_animation,
-                 attack_animation, death_animation):
+    def __init__(self, window_width, window_height):
         self.player_pos_x = window_width // 2
         self.player_pos_y = window_height // 2
         self.speed = 4
@@ -14,13 +14,15 @@ class Hero:
         self.mana = 60
         self.state = "idle"
         self.current_spell = None
+        self.texture  = load_texture_from_image(load_image("../resources/hero3.png"))
 
-        self.idle_animation = idle_animation
-        self.right_run_animation = right_run_animation
-        self.left_run_animation = left_run_animation
-        self.attack_animation = attack_animation
-        self.death_animation = death_animation
-        self.texture = idle_animation.frames[0]
+        self.idle_animation = Animation("resources/hero/idle", 3)
+        self.texture = self.idle_animation.frames[0]
+        self.right_run_animation = Animation("resources/hero/right_run", 3)
+        self.left_run_animation = Animation("resources/hero/left_run", 3)
+        self.attack_animation = Animation("resources/hero/attack", 9)
+        self.death_animation = Animation("resources/hero/attack", 9)
+        self.death_animation = Animation('resources/hero/death', 9)
 
 
     def get_angle(self, mouse_pos_x, mouse_pos_y):
