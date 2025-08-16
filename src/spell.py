@@ -49,7 +49,7 @@ class HealthSpell(AbcSpell):
                 self.hero.health += 10
             else:
                 self.hero.health += self.hero.base_hp - self.hero.health
-    def play_animation(self, fps):
+    def spell_animation(self, fps):
         pass
 
 class ShieldSpell(AbcSpell):

@@ -19,6 +19,8 @@ class AbcParticles:
     def collide_script(self, person):
         pass
 
+    def spell_animation(self, fps_num):
+        pass
 class DamageSpellParticle:
 
     def __init__(self, dx, dy,x, y, enemies):

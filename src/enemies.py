@@ -41,6 +41,7 @@ class RobotEnemy(AbcEnemy):
                 else:
                     hero_class.health -= self.damage
                     self.latest_attack = time()
+                    hero_class.state = "damaged"
                 return 1
         y1 = (hero_class.player_pos_y - self.pos_y) // abs(hero_class.player_pos_y - self.pos_y) if \
             (hero_class.player_pos_y - self.pos_y) != 0 else -1

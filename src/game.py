@@ -15,6 +15,7 @@ class Game:
         self.DEBUG = False
         self.ENEMIES = []
         self.PARTICLES = []
+        self.MANA_SPEED = 0.05
         self.IS_ATTACK = False
         self.HP_BAR_WIDTH = 200
         self.AI = True
@@ -84,6 +85,9 @@ class Game:
             if current_time - self.MUSIC_START > self.CURRENT_MUSIC_INFO.duration:
                 self.MUSIC_START = current_time
                 play_sound(self.CURRENT_MUSIC)
+
+            if self.hero.base_mana != self.hero.mana:
+                self.hero.mana += self.MANA_SPEED
 
             begin_drawing()
             clear_background(BLACK)
@@ -250,7 +254,7 @@ class Game:
                         self.hero.current_spell.script()
                         self.hero.current_spell.long_script_start = time()
 
-                if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+                if is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) and self.hero.attack_animation.current_frame == 0:
                     play_sound(self.sword_sound)
                     self.IS_ATTACK = True
                     self.check_enemies_on_damage()
@@ -346,7 +350,12 @@ class Game:
                             floor(self.hero.player_pos_x), floor(self.hero.player_pos_y),
                             WHITE
                         )
-
+                    elif self.hero.state == "damaged":
+                        draw_texture(
+                            self.hero.damage_animation.get_current_frame(get_fps()),
+                            floor(self.hero.player_pos_x), floor(self.hero.player_pos_y),
+                            WHITE
+                        )
                 if (self.hero.current_spell.long_script_start > 0
                     and current_time < self.hero.current_spell.long_script_start + self.hero.current_spell.long_script_time):
                     self.hero.current_spell.long_script()

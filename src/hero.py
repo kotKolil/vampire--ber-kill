@@ -7,7 +7,7 @@ class Hero:
         self.player_pos_y = window_height // 2
         self.speed = 4
         self.attack_radius = 30
-        self.blade_attack_damage = 13
+        self.blade_attack_damage = 60
         self.base_hp = 30
         self.base_mana = 60
         self.health = 60
@@ -23,6 +23,7 @@ class Hero:
         self.attack_animation = Animation("resources/hero/attack", 9)
         self.death_animation = Animation("resources/hero/attack", 9)
         self.death_animation = Animation('resources/hero/death', 9)
+        self.damage_animation = Animation("resources/hero/damage", 60)
 
 
     def get_angle(self, mouse_pos_x, mouse_pos_y):
