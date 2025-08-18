@@ -8,9 +8,9 @@ class Hero:
         self.speed = 4
         self.attack_radius = 30
         self.blade_attack_damage = 60
-        self.base_hp = 30
+        self.base_hp = 23453467
         self.base_mana = 60
-        self.health = 60
+        self.health = 23453467
         self.mana = 60
         self.state = "idle"
         self.current_spell = None
@@ -20,10 +20,10 @@ class Hero:
         self.texture = self.idle_animation.frames[0]
         self.right_run_animation = Animation("resources/hero/right_run", 3)
         self.left_run_animation = Animation("resources/hero/left_run", 3)
-        self.attack_animation = Animation("resources/hero/attack", 9)
+        self.attack_animation = Animation("resources/hero/attack", 30)
         self.death_animation = Animation("resources/hero/attack", 9)
         self.death_animation = Animation('resources/hero/death', 9)
-        self.damage_animation = Animation("resources/hero/damage", 60)
+        self.damage_animation = Animation("resources/hero/damage", 1000)
 
 
     def get_angle(self, mouse_pos_x, mouse_pos_y):

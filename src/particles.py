@@ -7,8 +7,8 @@ class AbcParticles:
         #dx and dy is direction on Ox and Oy of movement vector. 1 is up and right, -1 is down and left
         self.dx = dx
         self.dy = dy
-        self.x = 0
-        self.y = 0
+        self.x = x
+        self.y = y
         self.iterative = False
         self.lifetime = 0
         self.enemies = enemies
@@ -21,7 +21,7 @@ class AbcParticles:
 
     def spell_animation(self, fps_num):
         pass
-class DamageSpellParticle:
+class DamageSpellParticle(AbcParticles):
 
     def __init__(self, dx, dy,x, y, enemies):
         super().__init__(dx, dy, x, y, enemies)
@@ -30,8 +30,9 @@ class DamageSpellParticle:
         self.enemies = enemies
         self.animation = Animation("resources/particles_animation/damage_spell_particles", 1)
         self.born_time = time.time()
-        self.speed = 0.2
+        self.speed = 1.6
 
 
     def collide_script(self, person):
-        person.health -= 5
+        person.health -= 20
+        print(person.health)

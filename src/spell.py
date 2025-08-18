@@ -1,19 +1,23 @@
+from numpy.ma.core import arcsin
+
 from .hero import *
-from .animation import *
+from .particles import *
+from math import *
 
 from pyray import *
 
 class AbcSpell:
 
-    def __init__(self,hero:Hero, enemies_list):
+    def __init__(self, game_class):
+        self.game_class = game_class
         self.mana_count = 0
         self.description = ""
         self.cooldown = 0
         self.icon = 0
         self.name = 0
         self.icon = None
-        self.hero = hero
-        self.enemies = enemies_list
+        self.hero = game_class.hero
+        self.enemies = game_class.ENEMIES
         self.animation = None
         self.long_script_start = 0
         self.long_script_time = 0
@@ -28,13 +32,13 @@ class AbcSpell:
     def long_script(self):
         pass
 
-    def play_animation(self):
+    def spell_animation(self, fps):
         pass
 
 class HealthSpell(AbcSpell):
 
-    def __init__(self,hero:Hero, enemies_list):
-        super().__init__(hero, enemies_list)
+    def __init__(self, game_class):
+        super().__init__(game_class)
         self.mana_count = 13
         self.description = "Heals 10hp.Takes 13 mana"
         self.icon = load_texture_from_image(load_image("resources/spells_icons/health_spell_icon.png"))
@@ -53,8 +57,8 @@ class HealthSpell(AbcSpell):
         pass
 
 class ShieldSpell(AbcSpell):
-    def __init__(self, hero, enemies_list):
-        super().__init__(hero, enemies_list)
+    def __init__(self, games_class):
+        super().__init__(games_class)
         self.mana_count = 20
         self.description = "creates magic shield against damage"
         self.icon = load_texture_from_image(load_image("resources/spells_icons/shield_spell_icon.png"))
@@ -72,3 +76,25 @@ class ShieldSpell(AbcSpell):
                      floor(self.hero.player_pos_x),
                      floor(self.hero.player_pos_y),
                      WHITE)
+
+class LightSpheresSpell(AbcSpell):
+
+    def __init__(self, game_class):
+        super().__init__(game_class)
+        self.mana_count = 15
+        self.description = "creates spheres of light against enemies"
+        self.icon = load_texture_from_image(load_image("resources/spells_icons/light_wave.png"))
+        self.cooldown = 7
+        self.name = "light sphere spell"
+        self.long_script_time = 0
+        self.animation = None
+
+    def script(self):
+        self.game_class.PARTICLES +=  [
+            DamageSpellParticle(
+                cos(i) // abs(cos(i)), sin(i) // abs(sin(i)),
+                self.hero.player_pos_x + self.hero.texture.width  * cos(i) // 2,
+                self.hero.player_pos_y + self.hero.texture.height  * sin(i) // 2,
+                self.game_class.ENEMIES,
+                ) for i in range(1, 361, 30)
+            ]

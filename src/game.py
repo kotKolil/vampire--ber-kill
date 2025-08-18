@@ -12,7 +12,7 @@ class Game:
         self.WIDTH = 666
         self.HEIGHT = 666
         self.PADDING = 30
-        self.DEBUG = False
+        self.DEBUG = True
         self.ENEMIES = []
         self.PARTICLES = []
         self.MANA_SPEED = 0.05
@@ -42,11 +42,11 @@ class Game:
         self.main_font = load_font("resources/alagard.ttf")
 
         self.CURRENT_MUSIC = load_sound(self.CURRENT_MUSIC_PATH)
-        self.sword_sound = load_sound("resources/audio/sword.ogg")  # Исправлен путь
+        self.sword_sound = load_sound("resources/audio/sword.ogg")
 
 
         self.hero = Hero(self.WIDTH, self.HEIGHT)
-        self.spells = [cls(self.hero, self.ENEMIES) for name, cls in inspect.getmembers(importlib.import_module("src.spell"), inspect.isclass) if cls.__module__ == 'src.spell'][1:]
+        self.spells = [cls(self) for name, cls in inspect.getmembers(importlib.import_module("src.spell"), inspect.isclass) if cls.__module__ == 'src.spell'][1:]
         self.hero.current_spell = self.spells[0]
         play_sound(self.CURRENT_MUSIC)
 
@@ -74,6 +74,7 @@ class Game:
                 if i.health <= 0:
                     self.ENEMIES.remove(i)
                     self.generate_random_enemy()
+                    self.generate_random_enemy()
                     self.hero.health = min(self.hero.base_hp, self.hero.health + i.base_hp // 4)
                     return 0
                 return 1
@@ -86,7 +87,7 @@ class Game:
                 self.MUSIC_START = current_time
                 play_sound(self.CURRENT_MUSIC)
 
-            if self.hero.base_mana != self.hero.mana:
+            if self.hero.base_mana >= self.hero.mana:
                 self.hero.mana += self.MANA_SPEED
 
             begin_drawing()
@@ -267,7 +268,10 @@ class Game:
                     draw_texture(i.texture, floor(i.pos_x), floor(i.pos_y), WHITE)
 
                 if self.AI:
-                    for i in self.ENEMIES:
+                    for i in self.ENEMIES[:]:
+                        if i.health <= 0:
+                            self.ENEMIES.remove(i)
+                            continue
                         i.ai_script(self.hero)
 
                 for particle in self.PARTICLES[:]:
@@ -282,11 +286,8 @@ class Game:
                         if ((enemy.pos_x - enemy.texture.width // 2 - 3 <= particle.x <= enemy.pos_x + enemy.texture.width // 2 + 3)
                             and (enemy.pos_y - enemy.texture.height // 2 - 3 <= particle.y <= enemy.pos_y + enemy.texture.height // 2 + 3)):
                             particle.collide_script(enemy)
-                            collided = True
+                            self.PARTICLES.remove(particle)
                             break
-
-                    if collided:
-                        continue
 
                     draw_texture(particle.animation.get_current_frame(get_fps()),
                                  floor(particle.x),
@@ -314,6 +315,7 @@ class Game:
                     draw_text_ex(self.main_font, pos_text, (10, 40), 15, 4, GREEN)
                     draw_text_ex(self.main_font, mouse_text, (10, 70), 15, 4, GREEN)
                     draw_text_ex(self.main_font, spell_text, (10, 100), 15, 4, GREEN)
+                    draw_text_ex(self.main_font, str(len(self.ENEMIES)), (10, 120), 15, 4, GREEN)
 
                     if len(self.hero.idle_animation.frames) > 0:
                         hero_tex = self.hero.idle_animation.frames[0]
